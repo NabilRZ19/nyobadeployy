@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>20 Solver</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f9f6f2; /* Light beige */
+        color: #3e2723; /* Dark brown */
+      }
+      h2 {
+        text-align: center;
+        color: #5d4037; /* Medium brown */
+      }
+      input {
+        width: 50px;
+        text-align: center;
+        border: 2px solid #5d4037; /* Medium brown */
+        border-radius: 5px;
+        padding: 5px;
+        margin: 5px;
+      }
+      table {
+        width: 100%;
+        border: 1px solid #3e2723; /* Dark brown */
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #3e2723; /* Dark brown */
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #8d6e63; /* Light brown */
+        color: white;
+      }
+      button {
+        background-color: #5d4037; /* Medium brown */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        display: block;
+        width: 100%;
+      }
+      button:hover {
+        background-color: #3e2723; /* Darker brown */
+      }
+      #noSolution {
+        color: red;
+        display: none;
+      }
+      #jumlahSolusi {
+        font-weight: bold;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>20 Solver</h2>
+
+    <!-- Tabel untuk input 4 angka -->
+    <table>
+      <tr>
+        <th>Angka 1</th>
+        <th>Angka 2</th>
+        <th>Angka 3</th>
+        <th>Angka 4</th>
+      </tr>
+      <tr>
+        <td><input type="number" id="angka1" /></td>
+        <td><input type="number" id="angka2" /></td>
+        <td><input type="number" id="angka3" /></td>
+        <td><input type="number" id="angka4" /></td>
+      </tr>
+    </table>
+
+    <button onclick="solve()">Hitung Kemungkinan</button>
+
+    <!-- Tabel untuk menampilkan hasil -->
+    <table id="resultTable" style="display: none">
+      <thead>
+        <tr>
+          <th>Ekspresi</th>
+          <th>Hasil</th>
+        </tr>
+      </thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+
+    <!-- Tabel untuk menampilkan solusi -->
+    <table id="solutionTable" style="display: none">
+      <thead>
+        <tr>
+          <th>Solusi yang menghasilkan 20</th>
+        </tr>
+      </thead>
+      <tbody id="solutionBody"></tbody>
+    </table>
+
+    <!-- Menampilkan jumlah solusi -->
+    <p id="jumlahSolusi" style="display: none"></p>
+    <p id="noSolution" style="display: none">
+      Angka yang di input tidak akan menghasilkan nilai 20.
+    </p>
+
+    <script>
+      // Fungsi untuk menghasilkan permutasi dari array
+      function permutasi(arr) {
+        if (arr.length === 0) return [[]];
+        const result = [];
+        for (let i = 0; i < arr.length; i++) {
+          const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+          for (let perm of permutasi(rest)) {
+            result.push([arr[i], ...perm]);
+          }
+        }
+        return result;
+      }
+
+      // Fungsi untuk menghitung semua kemungkinan ekspresi
+      function hitungKemungkinan(angka) {
+        const operators = ["+", "-", "*", "/"];
+        const allExpressions = [];
+        const angkaPermutasi = permutasi(angka);
+
+        for (let perm of angkaPermutasi) {
+          for (let op1 of operators) {
+            for (let op2 of operators) {
+              for (let op3 of operators) {
+                const expressions = [
+                  `(${perm[0]} ${op1} ${perm[1]}) ${op2} (${perm[2]} ${op3} ${perm[3]})`,
+                  `(${perm[0]} ${op1} (${perm[1]} ${op2} ${perm[2]})) ${op3} ${perm[3]}`,
+                  `${perm[0]} ${op1} ((${perm[1]} ${op2} ${perm[2]}) ${op3} ${perm[3]})`,
+                  `(${perm[0]} ${op1} ${perm[1]}) ${op2} ${perm[2]} ${op3} ${perm[3]}`,
+                  `${perm[0]} ${op1} ${perm[1]} ${op2} ${perm[2]} ${op3} ${perm[3]}`,
+                ];
+
+                for (let expr of expressions) {
+                  try {
+                    const hasil = eval(expr);
+                    if (isFinite(hasil)) {
+                      allExpressions.push({ expr, hasil });
+                    }
+                  } catch (e) {
+                    console.error(`Error in expression: ${expr} - ${e}`);
+                    continue;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        return allExpressions;
+      }
+
+      // Fungsi untuk menghitung dan menampilkan hasil
+      function solve() {
+        const angka1 = document.getElementById("angka1").value;
+        const angka2 = document.getElementById("angka2").value;
+        const angka3 = document.getElementById("angka3").value;
+        const angka4 = document.getElementById("angka4").value;
+
+        // Ambil input dari pengguna dan validasi
+        const angkaInput = [angka1, angka2, angka3, angka4].map(Number);
+
+        if (angkaInput.some(isNaN) || angkaInput.length !== 4) {
+          alert("Harap masukkan 4 angka yang valid!");
+          return;
+        }
+
+        // Hapus hasil sebelumnya
+        document.getElementById("resultBody").innerHTML = "";
+        document.getElementById("solutionBody").innerHTML = "";
+        document.getElementById("jumlahSolusi").style.display = "none";
+        document.getElementById("noSolution").style.display = "none";
+
+        // Hitung kemungkinan
+        const kemungkinan = hitungKemungkinan(angkaInput);
+
+        // Cari solusi yang menghasilkan angka 20
+        const targetHasil = 20;
+        const solusi = kemungkinan.filter((item) => item.hasil === targetHasil);
+
+        // Tampilkan solusi jika ada
+        const solutionTable = document.getElementById("solutionTable");
+        const solutionBody = document.getElementById("solutionBody");
+        solutionTable.style.display = solusi.length > 0 ? "table" : "none";
+
+        solusi.forEach((item) => {
+          const row = `<tr><td>${item.expr} = ${targetHasil}</td></tr>`;
+          solutionBody.innerHTML += row;
+        });
+
+        // Tampilkan jumlah solusi
+        const jumlahSolusi = document.getElementById("jumlahSolusi");
+        jumlahSolusi.textContent = `Jumlah solusi yang menghasilkan 20: ${solusi.length}`;
+        jumlahSolusi.style.display = solusi.length > 0 ? "block" : "none";
+
+        // Tampilkan pesan jika tidak ada solusi
+        const noSolution = document.getElementById("noSolution");
+        noSolution.style.display = solusi.length === 0 ? "block" : "none";
+      }
+    </script>
+  </body>
+</html>
